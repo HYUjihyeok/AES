@@ -939,7 +939,7 @@ std::string string_To_UTF8(const std::string & str)
 {
 	int nwLen = ::MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, NULL, 0);
 
-	wchar_t * pwBuf = new wchar_t[nwLen + 1];//Ò»¶¨Òª¼Ó1£¬²»È»»á³öÏÖÎ²°Í
+	wchar_t * pwBuf = new wchar_t[nwLen + 1];//ä¸€å®šè¦åŠ 1ï¼Œä¸ç„¶ä¼šå‡ºç°å°¾å·´
 	ZeroMemory(pwBuf, nwLen * 2 + 2);
 
 	::MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.length(), pwBuf, nwLen);
@@ -965,7 +965,7 @@ std::string UTF8_To_string(const std::string & str)
 {
 	int nwLen = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
 
-	wchar_t * pwBuf = new wchar_t[nwLen + 1];//Ò»¶¨Òª¼Ó1£¬²»È»»á³öÏÖÎ²°Í
+	wchar_t * pwBuf = new wchar_t[nwLen + 1];//ä¸€å®šè¦åŠ 1ï¼Œä¸ç„¶ä¼šå‡ºç°å°¾å·´
 	memset(pwBuf, 0, nwLen * 2 + 2);
 
 	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), pwBuf, nwLen);
@@ -994,7 +994,7 @@ static const std::string base64_chars =
 
 
 static inline bool is_base64(unsigned char c) {
-	return (isalnum(c) || (c == '+') || (c == '/'));
+	return (isalnum(c) || (c == '+') || (c == '/') || (c == '-') || (c == '_'));
 }
 
 std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len) {
@@ -1050,7 +1050,13 @@ std::string base64_decode(std::string const& encoded_string) {
 
 	while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_]))
 	{
-		char_array_4[i++] = encoded_string[in_]; in_++;
+		if (encoded_string[in_] == '_')
+			char_array_4[i++] = '/';
+		else if (encoded_string[in_] == '-')
+			char_array_4[i++] = '+';
+		else
+			char_array_4[i++] = encoded_string[in_];
+		in_++;
 		if (i ==4) {
 			for (i = 0; i <4; i++)
 				char_array_4[i] = base64_chars.find(char_array_4[i]);
@@ -1081,11 +1087,11 @@ std::string base64_decode(std::string const& encoded_string) {
 
 	return ret;
 }
-////////////base64´¦Àí////////////////////////
+////////////base64å¤„ç†////////////////////////
 string encryt(string Data)
 {
-	//const long LENGTH =Data.length();  Èç¹û²»ĞèÒª×ªÂë¾Í²»ĞèÒª
-	//Data = string_To_UTF8(Data);²»ĞèÒª×ªÂë£¿£¿£¿£¿£¿
+	//const long LENGTH =Data.length();  å¦‚æœä¸éœ€è¦è½¬ç å°±ä¸éœ€è¦
+	//Data = string_To_UTF8(Data);ä¸éœ€è¦è½¬ç ï¼Ÿï¼Ÿï¼Ÿï¼Ÿï¼Ÿ
 	int length=Data.size(); 
 	int block_num=length/16;
 /*
@@ -1094,8 +1100,8 @@ string encryt(string Data)
 		block_num++;
 	}
 	*/
-	//¹¹Ôì¼ÓÃÜ¿é,padding·½Ê½ÎªPKCS5  syl_
-	char* p_data=new char[(block_num+1)*16+1]; //block*16+1 ÕâÖÖ·½Ê½»á²»»áÓĞÒş»¼£¿µ±16×Ö½ÚÕûÊı±¶Ê±»¹ĞèÒªÌî²¹16¸ö×Ö½Ú¡£µ«·ÖÅäÄÚ´æ²»¹»£¿(ºóÆÚÑéÖ¤£¬´æÔÚÒş»¼)
+	//æ„é€ åŠ å¯†å—,paddingæ–¹å¼ä¸ºPKCS5  syl_
+	char* p_data=new char[(block_num+1)*16+1]; //block*16+1 è¿™ç§æ–¹å¼ä¼šä¸ä¼šæœ‰éšæ‚£ï¼Ÿå½“16å­—èŠ‚æ•´æ•°å€æ—¶è¿˜éœ€è¦å¡«è¡¥16ä¸ªå­—èŠ‚ã€‚ä½†åˆ†é…å†…å­˜ä¸å¤Ÿï¼Ÿ(åæœŸéªŒè¯ï¼Œå­˜åœ¨éšæ‚£)
 	memset(p_data,0x00,(block_num+1)*16+1);
 	strcpy(p_data,Data.c_str());
 	int k=length%BLOCK_SIZE;
@@ -1106,20 +1112,20 @@ string encryt(string Data)
 		p_data[j*BLOCK_SIZE+k+i]=padding;
 	}
 	p_data[j*BLOCK_SIZE+k+padding]='\0';
-	unsigned char key[24]="1123456781234567";    //syl_×Ô¼º¶¨
-	// HexStr2CharStr(keyhexstr.c_str(),key,24);  syl_½âÃÜ  ×Ô¼º×¢ÊÍµÄ¡£
+	unsigned char key[24]="1123456781234567";    //syl_è‡ªå·±å®š
+	// HexStr2CharStr(keyhexstr.c_str(),key,24);  syl_è§£å¯†  è‡ªå·±æ³¨é‡Šçš„ã€‚
 	CRijndael oRijndael;
-	//ÉèÖÃ½âÃÜµÄkeyºÍIVÊ±£¬Óë¼ÓÃÜµÄkeyºÍIV±£³ÖÒ»ÖÂ
-	oRijndael.MakeKey((char*)key, "dadadadadadadada", 16, 16);//×¢£ºIVÏòÁ¿:dadadadadadadada syl_   oRijndael.MakeKey((char*)key, "0102030405060708", 24, 16);
-	//Ã÷ÎÄ
+	//è®¾ç½®è§£å¯†çš„keyå’ŒIVæ—¶ï¼Œä¸åŠ å¯†çš„keyå’ŒIVä¿æŒä¸€è‡´
+	oRijndael.MakeKey((char*)key, "dadadadadadadada", 16, 16);//æ³¨ï¼šIVå‘é‡:dadadadadadadada syl_   oRijndael.MakeKey((char*)key, "0102030405060708", 24, 16);
+	//æ˜æ–‡
 	char *szDataIn=new char[(block_num+1)*16+1];
-	//¼ÓÃÜºóµÄÃÜÎÄ
+	//åŠ å¯†åçš„å¯†æ–‡
 	char *szDataOut= new char[(block_num+1)*16*2+1];
 	memset(szDataIn, 0, (block_num+1)*16+1);
 	memset(szDataOut, 0, (block_num+1)*16*2+1);
 	strcpy(szDataIn, p_data);
 	memset(szDataOut, 0, (block_num+1)*16*2+1);
-	//¼ÓÃÜ×Ö·û´®
+	//åŠ å¯†å­—ç¬¦ä¸²
 	oRijndael.Encrypt(szDataIn, szDataOut, (block_num+1)*16, CRijndael::CBC);
 	
 	string temp_caculate = szDataOut;
@@ -1137,15 +1143,15 @@ string decryt(string final_encode)
 	unsigned char key[24]="1123456781234567";  
 	CRijndael oRijndael;
 	oRijndael.MakeKey((char*)key, "dadadadadadadada", 16, 16);  //syl_  oRijndael.MakeKey((char*)key, "0102030405060708", 24, 16);
-	//½âÃÜÊı¾İ
+	//è§£å¯†æ•°æ®
 	string final_decode = base64_decode(final_encode);
 	int block_num = final_decode.length()/16;
 	//std::cout<<"final_decode_length"<<"   "<<final_decode<<"    "<<final_decode.length()<<endl; //syl_
-	//Ã÷ÎÄ
+	//æ˜æ–‡
 	char *szDataIn=new char[block_num*16+1];
 	memset(szDataIn, 0, block_num*16+1);
 	oRijndael.Decrypt(final_decode.c_str(), szDataIn, block_num*16, CRijndael::CBC);
-	//string temp_retult = UTF8_To_string(szDataIn); ²»ĞèÒª×ªÂë£¿£¿£¿£¿ºÃÆæ¹Ö¡£
+	//string temp_retult = UTF8_To_string(szDataIn); ä¸éœ€è¦è½¬ç ï¼Ÿï¼Ÿï¼Ÿï¼Ÿå¥½å¥‡æ€ªã€‚
 	string temp_retult =szDataIn;
 	temp_retult = temp_retult.substr(0,temp_retult.length()-int(temp_retult[temp_retult.length()-1]));
 	//std::cout<<temp_retult<<endl;
